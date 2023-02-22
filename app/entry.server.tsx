@@ -5,6 +5,11 @@ import { RemixServer } from "@remix-run/react";
 import isbot from "isbot";
 import { renderToPipeableStream } from "react-dom/server";
 
+import { NonceContext } from "./components/NonceContext";
+
+// In real applications you would generate a new nonce for each request.
+const NONCE = "sample-nonce";
+
 const ABORT_DELAY = 5000;
 
 export default function handleRequest(
@@ -13,6 +18,8 @@ export default function handleRequest(
   responseHeaders: Headers,
   remixContext: EntryContext
 ) {
+  responseHeaders.set('Content-Security-Policy', `script-src 'self' 'nonce-${NONCE}';`)
+
   return isbot(request.headers.get("user-agent"))
     ? handleBotRequest(
         request,
@@ -38,8 +45,11 @@ function handleBotRequest(
     let didError = false;
 
     const { pipe, abort } = renderToPipeableStream(
-      <RemixServer context={remixContext} url={request.url} />,
+      <NonceContext.Provider value={NONCE}>
+        <RemixServer context={remixContext} url={request.url} />
+      </NonceContext.Provider>,
       {
+        nonce: NONCE,
         onAllReady() {
           const body = new PassThrough();
 
@@ -79,8 +89,11 @@ function handleBrowserRequest(
     let didError = false;
 
     const { pipe, abort } = renderToPipeableStream(
-      <RemixServer context={remixContext} url={request.url} />,
+      <NonceContext.Provider value={NONCE}>
+        <RemixServer context={remixContext} url={request.url} />
+      </NonceContext.Provider>,
       {
+        nonce: NONCE,
         onShellReady() {
           const body = new PassThrough();
 

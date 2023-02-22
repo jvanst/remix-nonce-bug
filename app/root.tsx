@@ -7,6 +7,8 @@ import {
   Scripts,
   ScrollRestoration,
 } from "@remix-run/react";
+import { useContext } from "react";
+import { NonceContext } from "./components/NonceContext";
 
 export const meta: MetaFunction = () => ({
   charset: "utf-8",
@@ -15,6 +17,8 @@ export const meta: MetaFunction = () => ({
 });
 
 export default function App() {
+  const nonce = useContext(NonceContext);
+
   return (
     <html lang="en">
       <head>
@@ -23,9 +27,9 @@ export default function App() {
       </head>
       <body>
         <Outlet />
-        <ScrollRestoration />
-        <Scripts />
-        <LiveReload />
+        <ScrollRestoration nonce={nonce} />
+        <Scripts nonce={nonce} />
+        <LiveReload nonce={nonce} />
       </body>
     </html>
   );
